@@ -2,6 +2,7 @@ const router = require('express').Router();
 const {check, validationResult} = require("express-validator");
 const {users} = require("../db");
 const bcrypt = require("bcrypt");
+const JWT = require("jsonwebtoken");
 
 router.post('/signup',[
     check("email","Please provide a valid email").isEmail(),
@@ -22,7 +23,7 @@ router.post('/signup',[
         });
 
         if (user){
-            res.status(400).json({
+            return res.status(400).json({
                 "errors": [
                     {
                         "type": "field",
@@ -37,14 +38,21 @@ router.post('/signup',[
 
         //hashing a password
 
-        let hashPassword = await bcrypt.hash(password,8);
+        const hashPassword = await bcrypt.hash(password,8);
 
         users.push({
             email:email,
             password:hashPassword
         });
 
-        res.send(users);
+        const token = await JWT.sign({email},"1234567890",{
+            expiresIn: 86400,
+        });
+
+        res.json({
+            token
+        });
+        res.send(token)
     } catch (e) {
     }
 });
