@@ -57,4 +57,53 @@ router.post('/signup',[
     }
 });
 
+router.post('/login', async (req,res)=>{
+    const {email,password} = req.body;
+
+    const user = users.find((user)=>{
+        return user.email === email;
+    })
+
+    try{
+        if (!user){
+            return res.status(400).json({
+                "errors": [
+                    {
+                        "type": "field",
+                        "value": email,
+                        "msg": "Invalid credentials",
+                        "path": "email",
+                        "location": "body"
+                    }
+                ]
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password,user.password);
+        if (!isMatch){
+            return res.status(400).json({
+                "errors": [
+                    {
+                        "type": "field",
+                        "value": email,
+                        "msg": "Invalid credentials",
+                        "path": "email",
+                        "location": "body"
+                    }
+                ]
+            });
+
+        }
+        const token = await JWT.sign({email},"1234567890",{
+            expiresIn: 86400,
+        });
+        res.json({
+            token
+        })
+        res.send(token)
+    } catch (e) {
+        
+    }
+})
+
 module.exports = router;
